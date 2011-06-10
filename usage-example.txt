@@ -1,0 +1,22 @@
+# Here is an example of how to use the CouchDB Source Adapter
+# NOTE it is essential that all of your models utilizing the CouchDB adapter
+# should include the following setting:
+# 	enable :full_update
+#
+# This is to make sure that the revision column is available for all updates
+
+class Product < CouchAdapter
+
+  def initialize(source,credential)
+    # Place the base url for your couch db in the @base variable
+    @base = "http://127.0.0.1:5984"
+    # Place the name of the database that you will be connecting to in the @db variable
+    @db = "products"
+    super(source,credential)
+  end
+  
+  def create_id(create_hash)
+    id = "#{create_hash['brand']}#{create_hash['name']}"
+  end
+
+end
