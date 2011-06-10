@@ -30,7 +30,10 @@ class CouchAdapter < SourceAdapter
     rows.each do |item|
       doc = item["doc"]
       id = doc.delete("_id").to_s
-      @result[id] = doc
+      
+      if id.start_with?("_design") == false
+        @result[id] = doc
+      end
     end if rows
     
   end
