@@ -1,9 +1,15 @@
 require 'json'
 require 'rest_client'
 
-class CouchAdapter < SourceAdapter
+class Product < SourceAdapter
 
   def initialize(source,credential)
+    # Place the base url for your couch db in the @base variable
+    # e.g. @base = "http://127.0.0.1:5984"
+    @base = "http://127.0.0.1:5984"
+    # Place the name of the database that you will be connecting to in the @db variable
+    # e.g. @db = "products"
+    @db = "products"
     super(source,credential)
   end
 
@@ -30,10 +36,7 @@ class CouchAdapter < SourceAdapter
     rows.each do |item|
       doc = item["doc"]
       id = doc.delete("_id").to_s
-      
-      if id.start_with?("_design") == false
-        @result[id] = doc
-      end
+      @result[id] = doc
     end if rows
     
   end
@@ -78,22 +81,26 @@ class CouchAdapter < SourceAdapter
       
       if id == nil
         uri = "#{@base}/#{@db}"
-	      body = RestClient.post(uri, create_hash.to_json, :content_type => :json, :accept => :json).body
+        body = RestClient.post(uri, create_hash.to_json, :content_type => :json, :accept => :json).body
+        parsed = JSON.parse(body)
+        id = parsed["id"]
       else
         uri = "#{@base}/#{@db}/#{id}"
-	      RestClient.put(uri, create_hash.to_json, :content_type => :json, :accept => :json).body
+        RestClient.put(uri, create_hash.to_json, :content_type => :json, :accept => :json).body
       end
     end
     
-    parsed = JSON.parse(body)
-    id = parsed["id"]
+    puts "The uri is: #{uri}"
+    
+    puts "the id is: #{id.to_s}"
     reselect id
     id
   end
   
   def create_id(create_hash)
-    # You may create the id before insertion, if desired, by overriding this method in your SourceAdapter.
-    # Be sure to return the id from this method if you are assigning it.
+    # You may create the id before insertion if desired.  Be sure to return the id from this method
+    # if you are assigning it.
+    id = "#{create_hash['brand']}#{create_hash['name']}"
   end
 
   def update(update_hash) 
@@ -114,4 +121,4 @@ class CouchAdapter < SourceAdapter
     RestClient.delete("#{@base}/#{@db}/#{delete_hash['id']}?rev=#{delete_hash['_rev']}")
   end
 
-end
+end 
